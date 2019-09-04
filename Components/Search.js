@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet,View, Button, TextInput, FlatList, ActivityIndicator } from 'react-native';
+import { StyleSheet,View, Button, TextInput, FlatList } from 'react-native';
 
 import FilmItem from './FilmItem';
 import { searchMovieByQuery, moviesDiscover } from '../Config/API/apiMovies';
@@ -44,8 +44,8 @@ export default class Search extends Component {
                 let filmsState = [...this.state.films]
                 let filmsApi = [...data.results]
 
-                lastFilm = filmsState.pop()
-                firstFilm = filmsApi.shift()
+                const lastFilm = filmsState.pop()
+                const firstFilm = filmsApi.shift()
                 
                 if( lastFilm !== undefined && lastFilm.id === firstFilm.id){
                     data.results.shift()
@@ -61,6 +61,10 @@ export default class Search extends Component {
 
     _searchTextInputChanged = (searchText) => {
         this.searchText = searchText
+    }
+
+    _displayDetailsFilm = (film) => {
+        this.props.navigation.navigate("FilmDetails", { "film" : film })
     }
 
     componentDidMount = () => {
@@ -91,7 +95,7 @@ export default class Search extends Component {
                 <FlatList
                     data={ this.state.films }
                     keyExtractor={item => item.id.toString() }
-                    renderItem={ ({ item }) => <FilmItem film={ item }/> }
+                    renderItem={({ item }) => <FilmItem film={item} displayDetailsFilm={this._displayDetailsFilm}/> }
                     
                     onEndReachedThreshold={ 0.5 }
                     onEndReached={ () => { 
@@ -114,7 +118,6 @@ export default class Search extends Component {
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: 24,
         flex: 1
     },
     search:{

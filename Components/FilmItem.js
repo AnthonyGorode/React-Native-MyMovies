@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 
 export default class FilmItem extends Component {
     constructor(props) {
@@ -7,7 +7,7 @@ export default class FilmItem extends Component {
     }
 
     render() {
-        const { film } = this.props
+        const { film, displayDetailsFilm } = this.props
 
         const url_img = 'https://image.tmdb.org/t/p/w500'+ film.poster_path
         const date = new Date(film.release_date);
@@ -15,7 +15,10 @@ export default class FilmItem extends Component {
         const month = date.getMonth();
         const year = date.getFullYear();
         return (
-            <View style={styles.main_container}>
+            <TouchableOpacity 
+                style={styles.main_container}
+                onPress={ () => displayDetailsFilm(film) }
+            >
                 <Image
                     style={styles.image}
                     source={{ uri: url_img }}
@@ -32,7 +35,7 @@ export default class FilmItem extends Component {
                         <Text style={styles.date_text}>Sorti le {`${day}/${month}/${year}`}</Text>
                     </View>
                 </View>
-            </View>
+            </TouchableOpacity>
         )
     }
 }
