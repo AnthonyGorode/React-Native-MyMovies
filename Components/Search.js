@@ -8,23 +8,53 @@ import Loadable from './utils/Loadable';
 export default class Search extends Component {
     constructor(props){
         super(props);
+
+        this.searchText = "";
+        this.page = 0;
+        this.totalPages = 0;
+
         this.state = {
             films : [],
             isLoading: true
         }
-        this.searchText = ""
+
+    }
+
+    _searchFilms = () => {
+        this.page = 0;
+        this.totalPages = 0;
+
+        this.setState({
+            films : []
+        }, () => {
+            
+            this._loadFilms();
+        })
     }
 
     _loadFilms = () => {
-        this.setState({
-            isLoading: true
-        })
         if(this.searchText.length > 0){
-            searchMovieByQuery(this.searchText).then((data) => {
+            this.setState({
+                isLoading: true
+            })
+            searchMovieByQuery(this.searchText,this.page + 1).then((data) => {
+                this.page = data.page;
+                this.totalPages = data.total_pages;
+
+                let filmsState = [...this.state.films]
+                let filmsApi = [...data.results]
+
+                lastFilm = filmsState.pop()
+                firstFilm = filmsApi.shift()
+                
+                if( lastFilm !== undefined && lastFilm.id === firstFilm.id){
+                    data.results.shift()
+                }
                 this.setState({
-                    films : data.results,
+                    films : [...this.state.films, ...data.results],
                     isLoading: false
                 })
+                console.log("Page : " + this.page + " TotalPages : " + this.totalPages + " Nombre de films : " + this.state.films.length);
             })
         }
     }
@@ -46,18 +76,36 @@ export default class Search extends Component {
         
         return (
             <View style={styles.container}>
-                <TextInput onSubmitEditing={ () => this._loadFilms() } onChangeText={(text) => this._searchTextInputChanged(text) } style={styles.search} placeholder="Titre du film" />
-                <Button style={styles.button} title="Rechercher" onPress={ () => this._loadFilms() } />
-                
-                {this.state.isLoading ? (
-                    <Loadable styles={ styles.loadable } />
-                ) : (
-                    <FlatList
-                        data={ this.state.films }
-                        keyExtractor={ item => item.id.toString() }
-                        renderItem={ ({ item }) => <FilmItem film={ item }/> }
-                    />
-                )}
+                <TextInput 
+                    onSubmitEditing={ () => this._searchFilms() } 
+                    onChangeText={(text) => this._searchTextInputChanged(text) } 
+                    style={styles.search} 
+                    placeholder="Titre du film" 
+                />
+                <Button 
+                    style={styles.button} 
+                    title="Rechercher" 
+                    onPress={ () => this._searchFilms() } 
+                />
+
+                <FlatList
+                    data={ this.state.films }
+                    keyExtractor={item => item.id.toString() }
+                    renderItem={ ({ item }) => <FilmItem film={ item }/> }
+                    
+                    onEndReachedThreshold={ 0.5 }
+                    onEndReached={ () => { 
+                        if(this.page < this.totalPages){
+                            this._loadFilms();
+                        }
+                     }
+                    }
+                />
+                    
+                <Loadable 
+                    styles={styles.loadable} 
+                    isLoading={ this.state.isLoading } 
+                />
             </View>
         )
         
@@ -89,7 +137,11 @@ const styles = StyleSheet.create({
         height: 50
     },
     loadable: {
-        flex: 1,
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 100,
+        bottom: 0,
         justifyContent: "center",
         alignItems: "center"
     }
