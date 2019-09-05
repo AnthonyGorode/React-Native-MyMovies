@@ -1,93 +1,146 @@
 import React, { Component } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
+import Loadable from './utils/Loadable';
+import { getFilmDetailFromApi } from '../Config/API/apiMovies';
+import { ScrollView, FlatList } from 'react-native-gesture-handler';
+import moment from 'moment';
+import numeral from 'numeral';
 
 class FilmDetails extends Component {
-    render(){
-        const film = this.props.navigation.getParam("film");
 
-        const url_img = 'https://image.tmdb.org/t/p/w500' + film.poster_path
-        const date = new Date(film.release_date);
-        const day = date.getDate();
-        const month = date.getMonth();
-        const year = date.getFullYear();
+    constructor(props) {
+        
+        super(props);
+        this.state = {
+            film: undefined,
+            isLoading: true
+        }
 
-        return (
-            <>
-                <View style={styles.main_container}>
+    }
+
+    _displayFilm = () => {
+        const film = this.state.film;
+        if(film !== undefined){
+            const date = moment(new Date(film.release_date)).format("DD/MM/YYYY");
+            const budget = numeral(film.budget).format('0,0');
+            const url_img = 'https://image.tmdb.org/t/p/w500' + film.backdrop_path
+            return (
+                <ScrollView style={styles.scrollView_container}>
                     <Image
                         style={styles.image}
                         source={{ uri: url_img }}
-                    />
-                    <View style={styles.content_container}>
-                        <View style={styles.header_container}>
-                            <Text style={styles.title_text}>{film.title}</Text>
-                        </View>
-                        <View style={styles.details_container}>
-                            <Text style={styles.vote_text}>{film.vote_average}/10</Text>
-                            <Text style={styles.vote_text}>Vote : {film.vote_count}</Text>
-                            <Text style={styles.vote_text}>({film.popularity})</Text>
-                        </View>
-                        <View style={styles.date_container}>
-                            <Text style={styles.date_text}>Sorti le {`${day}/${month}/${year}`}</Text>
-                        </View>
+                    /> 
+                    <View style={styles.title_container}>
+                        <Text style={styles.title} h1>{film.title}</Text>
                     </View>
-                </View>
-                <View style={styles.description_container}>
-                    <Text style={styles.description_text}>{film.overview}</Text>
-                </View>
-            </>
+                    <View style={styles.content_container}>
+                        <Text style={styles.content}>{film.overview}</Text>
+                    </View>
+                    <View style={styles.details_container}>
+                        <Text style={styles.details_container}>Sortie le {date}</Text>
+                        <Text style={styles.details_container}>Note : {film.vote_average}/10</Text>
+                        <Text style={styles.details_container}>Nombre de votes : {film.vote_count}</Text>
+                        <Text style={styles.details_container}>Budget : {budget} $</Text>
+                        <Text style={styles.details_container}>Note : {film.vote_average}/10</Text>
+                        
+                        <Text style={styles.genres}>Genres : {this._iterateDatasFilms(film.genres)}</Text>
+                        <Text style={styles.genres}>Companies : {this._iterateDatasFilms(film.production_companies)}</Text>
+                    </View>
+                </ScrollView>
+            )
+        }
+    }
+
+    _iterateDatasFilms = (datas) => {
+        let result = "";
+        for( i = 0; i < datas.length; i++){
+            iteration = datas[i].name;
+            if((i + 1) < datas.length) 
+               iteration += " / "
+            result += iteration
+        }
+        return result;
+    }
+
+    componentDidMount() {
+        getFilmDetailFromApi(this.props.navigation.getParam("idFilm")).then(
+            film => {
+                this.setState({
+                    film,
+                    isLoading: false
+                })
+            }
+        )
+    }
+
+    render(){
+        // const { film } = this.state;
+        
+        // const date = new Date(film.release_date);
+        // const day = date.getDate();
+        // const month = date.getMonth();
+        // const year = date.getFullYear();
+
+        return (
+            <View style={styles.main_container}> 
+                {this._displayFilm() }
+                <Loadable
+                    styles={styles.loadable}
+                    isLoading={this.state.isLoading}
+                />
+            </View>
         )
     }
 }
 
 const styles = StyleSheet.create({
     main_container: {
+        flex: 1,
         flexDirection: 'row',
         height: 190
     },
     image: {
-        width: 120,
-        height: 180,
-        margin: 5
+        height: 170,
+        margin: 2
+    },
+    title_container: {
+        
+    },
+    title: {
+        textAlign: "center",
+        fontWeight: "bold",
+        fontSize: 28,
+        margin: 6
     },
     content_container: {
-        flex: 1,
-        margin: 5
+        alignItems: "stretch"
     },
-    header_container: {
-        flex: 3,
-        flexDirection: 'row'
+    content: {
+        fontStyle: 'italic',
+        color: '#666666',
+        margin: 3,
+        fontSize: 16
+    },
+    genres: {
+        flexDirection: "row"
     },
     details_container: {
-        flex: 4,
-        flexDirection: 'row',
-        justifyContent: 'space-between'
-    },  
-    description_container: {
-        alignItems: 'stretch'
+        marginTop: 6
     },
-    date_container: {
+    details: {
+        margin: 3
+    },
+    loadable: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    scrollView_container: {
         flex: 1
-    },
-    title_text: {
-        flex: 1,
-        fontSize: 20,
-        flexWrap: 'wrap',
-        fontWeight: 'bold',
-        paddingRight: 5
-    },
-    vote_text: {
-        fontStyle: 'italic',
-        fontSize: 11,
-        color: '#666666'
-    },
-    description_text: {
-        fontWeight: 'bold',
-        color: '#666666'
-    },
-    date_text: {
-        textAlign: 'right',
-        fontSize: 14
     }
 })
 

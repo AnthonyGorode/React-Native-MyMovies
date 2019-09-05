@@ -63,8 +63,8 @@ export default class Search extends Component {
         this.searchText = searchText
     }
 
-    _displayDetailsFilm = (film) => {
-        this.props.navigation.navigate("FilmDetails", { "film" : film })
+    _displayDetailsFilm = (idFilm) => {
+        this.props.navigation.navigate("FilmDetails", { "idFilm": idFilm })
     }
 
     componentDidMount = () => {

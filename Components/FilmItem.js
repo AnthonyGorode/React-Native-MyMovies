@@ -17,7 +17,7 @@ export default class FilmItem extends Component {
         return (
             <TouchableOpacity 
                 style={styles.main_container}
-                onPress={ () => displayDetailsFilm(film) }
+                onPress={ () => displayDetailsFilm(film.id) }
             >
                 <Image
                     style={styles.image}

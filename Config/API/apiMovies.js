@@ -17,3 +17,12 @@ export const moviesDiscover = () => {
         error => console.log(error)
     )
 }
+
+// Récupération du détail d'un film
+export function getFilmDetailFromApi(id) {
+    const url = `https://api.themoviedb.org/3/movie/${id}?api_key=${API_TOKEN}&language=fr`
+    return fetch(url).then(
+        (response) => response.json(),
+        (error) => console.log(error)    
+    )
+}
